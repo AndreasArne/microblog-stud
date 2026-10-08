@@ -1,0 +1,16 @@
+# syntax=docker/dockerfile:1.4
+FROM python:3.8-alpine
+
+WORKDIR /home/microblog
+
+COPY requirements requirements
+COPY requirements.txt microblog.py Makefile pytest.ini .pylintrc .coveragerc test.sh ./
+
+# hadolint ignore=DL3018
+RUN <<-EOF
+    apk add --no-cache make
+    pip3 install --no-cache-dir -r requirements/test.txt
+    chmod +x test.sh
+EOF
+
+ENTRYPOINT ["./test.sh"]
