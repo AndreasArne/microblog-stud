@@ -30,6 +30,9 @@
     "workspaceMount": "source=${localWorkspaceFolder},target=${localWorkspaceFolder},type=bind",
     "workspaceFolder": "${localWorkspaceFolder}",
 
+    // Make sure ~/.ssh exists, owned by you. Docker would otherwise create it owned by root when it is mounted.
+    "initializeCommand": "mkdir -p -m 700 \"$HOME/.ssh\"",
+
     "mounts": [
         // The student's own SSH keys, used for git over ssh.
         "source=${localEnv:HOME}/.ssh,target=/home/dev/.ssh,type=bind"
