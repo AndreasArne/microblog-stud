@@ -1,0 +1,50 @@
+// Dev container for the devops course. Open the repo in VS Code and choose
+// "Reopen in Container". Clone the repo inside WSL on Windows, not on the C: drive.
+// Tools are added kmom by kmom. This version has what kmom01 needs.
+{
+    "name": "devops-microblog",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "context": ".",
+        // Tool versions are pinned here, and in the feature below.
+        "args": {
+            "PYTHON_IMAGE": "python:3.11.17-slim-bookworm",
+            "COMPOSE_VERSION": "2.40.3"
+        }
+    },
+
+    "features": {
+        // Installs the Docker CLI and gives the non-root user access to the host's Docker socket.
+        // Buildx is needed for BuildKit (heredocs in Dockerfiles). Compose is installed, and pinned, in the Dockerfile.
+        // The feature, the CLI and buildx are pinned here.
+        "ghcr.io/devcontainers/features/docker-outside-of-docker:1.10.1": {
+            "version": "28.5.2",
+            "dockerDashComposeVersion": "none",
+            "installDockerBuildx": true,
+            "mobyBuildxVersion": "0.37.2"
+        }
+    },
+
+    // The repo is mounted at the same absolute path as on the host. Docker commands run
+    // against the host's daemon, so bind mounts like `-v $(pwd):/repo` only work this way.
+    "workspaceMount": "source=${localWorkspaceFolder},target=${localWorkspaceFolder},type=bind",
+    "workspaceFolder": "${localWorkspaceFolder}",
+
+    "mounts": [
+        // The student's own SSH keys, used for git over ssh.
+        "source=${localEnv:HOME}/.ssh,target=/home/dev/.ssh,type=bind"
+    ],
+
+    "remoteUser": "dev",
+
+    "postCreateCommand": "python -m venv venv && . venv/bin/activate && make install-test && echo \". ${PWD}/venv/bin/activate\" >> ~/.bashrc",
+
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-azuretools.vscode-docker"
+            ]
+        }
+    }
+}
