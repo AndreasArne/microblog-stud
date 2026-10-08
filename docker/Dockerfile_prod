@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1.4
 FROM python:3.8-alpine
-RUN adduser -D microblog
+RUN adduser -D -u 1000 microblog
 
 WORKDIR /home/microblog
 
@@ -19,7 +19,7 @@ EOF
 ARG APP_VERSION=unknown
 ENV FLASK_APP=microblog.py APP_VERSION=${APP_VERSION}
 
-USER microblog
+USER 1000
 
 EXPOSE 5000
 ENTRYPOINT ["./boot.sh"]
