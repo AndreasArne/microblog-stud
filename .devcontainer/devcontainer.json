@@ -1,6 +1,6 @@
 // Dev container for the devops course. Open the repo in VS Code and choose
 // "Reopen in Container". Clone the repo inside WSL on Windows, not on the C: drive.
-// Tools are added kmom by kmom. This version has what kmom01 needs.
+// Tools are added kmom by kmom. This version has what kmom01 and kmom02 need.
 {
     "name": "devops-microblog",
     "build": {
@@ -9,7 +9,8 @@
         // Tool versions are pinned here, and in the feature below.
         "args": {
             "PYTHON_IMAGE": "python:3.11.17-slim-bookworm",
-            "COMPOSE_VERSION": "2.40.3"
+            "COMPOSE_VERSION": "2.40.3",
+            "AZURE_CLI_VERSION": "2.91.0"
         }
     },
 
@@ -35,12 +36,14 @@
 
     "mounts": [
         // The student's own SSH keys, used for git over ssh.
-        "source=${localEnv:HOME}/.ssh,target=/home/dev/.ssh,type=bind"
+        "source=${localEnv:HOME}/.ssh,target=/home/dev/.ssh,type=bind",
+        // Keeps `az login` when the container is rebuilt.
+        "source=devops-azure,target=/home/dev/.azure,type=volume"
     ],
 
     "remoteUser": "dev",
 
-    "postCreateCommand": "python -m venv venv && . venv/bin/activate && make install-test && echo \". ${PWD}/venv/bin/activate\" >> ~/.bashrc",
+    "postCreateCommand": "az config set core.use_msal_http_cache=false && python -m venv venv && . venv/bin/activate && make install-dev && echo \". ${PWD}/venv/bin/activate\" >> ~/.bashrc",
 
     "customizations": {
         "vscode": {
