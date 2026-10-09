@@ -1,0 +1,4 @@
+---
+# true: a staging certificate from Let's Encrypt, browsers do not trust it but there is no limit on how many you get.
+# false: a real certificate, you only get 5 a week for the same domain.
+certbot_staging: true
