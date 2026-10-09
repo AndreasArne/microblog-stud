@@ -1,0 +1,29 @@
+# Managed by Ansible. The "Modern (OpenSSH 6.7+)" configuration from https://infosec.mozilla.org/guidelines/openssh
+
+# Supported HostKey algorithms by order of preference.
+HostKey /etc/ssh/ssh_host_ed25519_key
+HostKey /etc/ssh/ssh_host_rsa_key
+HostKey /etc/ssh/ssh_host_ecdsa_key
+
+KexAlgorithms curve25519-sha256@libssh.org,ecdh-sha2-nistp521,ecdh-sha2-nistp384,ecdh-sha2-nistp256,diffie-hellman-group-exchange-sha256
+
+Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr
+
+MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512,hmac-sha2-256,umac-128@openssh.com
+
+# Password based logins are disabled - only public key based logins are allowed.
+# (PasswordAuthentication no is not in the Mozilla file, it is added to be explicit.)
+AuthenticationMethods publickey
+PasswordAuthentication no
+
+# LogLevel VERBOSE logs user's key fingerprint on login.
+LogLevel VERBOSE
+
+# Log sftp level file access. The path to the sftp server on Ubuntu is /usr/lib/openssh/sftp-server.
+Subsystem sftp /usr/lib/openssh/sftp-server -f AUTHPRIV -l INFO
+
+# Root login is not allowed.
+PermitRootLogin no
+
+# Not in the Mozilla file, Ubuntu needs PAM to set up the login session.
+UsePAM yes
