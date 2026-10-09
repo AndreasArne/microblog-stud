@@ -115,14 +115,14 @@ bandit:
 # target: trivy-image                  - Scan the production image with Trivy (build it first, see the docker-compose file)
 .PHONY: trivy-image
 trivy-image:
-	@docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:0.75.0 image --scanners vuln,secret,misconfig --no-progress --severity HIGH,CRITICAL --exit-code 1 microblog:prod
+	@docker run --rm -v /var/run/docker.sock:/var/run/docker.sock ghcr.io/aquasecurity/trivy:0.75.0 image --scanners vuln,secret,misconfig --no-progress --severity HIGH,CRITICAL --exit-code 1 microblog:prod
 
 
 
 # target: trivy-fs                     - Scan the repo files with Trivy
 .PHONY: trivy-fs
 trivy-fs:
-	@docker run --rm -v "$(CURDIR)":/repo -w /repo aquasec/trivy:0.75.0 fs --scanners vuln,secret,misconfig --severity HIGH,CRITICAL --exit-code 1 --no-progress --skip-dirs .venv,venv .
+	@docker run --rm -v "$(CURDIR)":/repo -w /repo ghcr.io/aquasecurity/trivy:0.75.0 fs --scanners vuln,secret,misconfig --severity HIGH,CRITICAL --exit-code 1 --no-progress --skip-dirs .venv,venv .
 
 
 
