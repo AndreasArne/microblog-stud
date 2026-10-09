@@ -11,6 +11,12 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # Pulls from Docker Hub without a login share a rate limit with every other user of the runner's IP address.
+      - uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
       - uses: actions/setup-python@v7
         with:
           python-version: "3.11"
