@@ -2,9 +2,11 @@
 ---
 - name: Create hosts with instance data
   add_host:
-    hostname: "{{ item.name }}"
+    # The name must not be the same as the names of the groups gather_instances creates (appserver, loadbalancer, ...).
+    # If it is, Ansible picks this host and not the group when a play uses hosts: loadbalancer.
+    hostname: "provision-{{ item.name }}"
     groups:
-        devops
+        provisioning
     # the keys below are dynamic and can have any name and value. A way to add data to the host which can be read later
     iname: "{{ item.name }}" 
     itype: "{{ item.type }}"

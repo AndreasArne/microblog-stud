@@ -4,7 +4,7 @@ ansible_python_interpreter: "python3"
 
 region: northeurope
 resource_group: <your resource group> # Change me
-domain_name: <your domain> # Change me
+domain_name: devops.arnesson.dev # Change me
 
 admin_email: <an email>
 
@@ -15,7 +15,19 @@ vmtags:
 pub_ssh_key_location: '<path to you local ssh public key>' # Change me, your local ssh key!
 
 
+# The user Azure creates on the VMs. 10-first-minutes removes it.
+root_user: azureuser
+
 server_user: "deploy"
 server_user_pass: "<a password>" # change me
 server_user_groups:
     -   sudo
+
+# Settings for the Microblog and the database. Change me, and do not commit real passwords.
+docker_username: andreasarne
+app_version: "11.0.0"
+db_name: microblog
+db_user: microblog
+db_password: <change me>
+db_root_password: <change me>
+app_secret_key: <change me>

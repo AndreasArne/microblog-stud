@@ -31,12 +31,28 @@
         zone_name: "{{ domain_name }}"
         record_type: A
         state: present
+        time_to_live: 60 # A short time, a new VM gets a new IP address and old answers are cached for the time to live
         records:
             - entry: "{{ output_ip_address.state.ip_address }}"
     when: iname == 'loadbalancer'
     loop: "{{ relative_names }}"
     loop_control: 
         loop_var: relative_name
+    delegate_to: 127.0.0.1
+
+
+
+-   name: Ensure "A" record for the appserver
+    azure_rm_dnsrecordset:
+        resource_group: "{{ resource_group }}"
+        relative_name: "{{ iname }}"
+        zone_name: "{{ domain_name }}"
+        record_type: A
+        state: present
+        time_to_live: 60 # A short time, a new VM gets a new IP address and old answers are cached for the time to live
+        records:
+            - entry: "{{ output_ip_address.state.ip_address }}"
+    when: itype == 'appserver'
     delegate_to: 127.0.0.1
 
 

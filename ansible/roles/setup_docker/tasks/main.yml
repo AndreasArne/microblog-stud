@@ -1,0 +1,15 @@
+---
+-   name: Install Docker and the Python package Ansible needs to manage containers
+    apt:
+        name:
+            - docker.io
+            - python3-docker
+        state: present
+        update_cache: yes
+        cache_valid_time: 3600
+
+-   name: Make sure Docker is started
+    service:
+        name: docker
+        state: started
+        enabled: yes
