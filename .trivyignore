@@ -1,0 +1,3 @@
+# The dev container Dockerfile runs as root during the build. devcontainer.json sets remoteUser
+# to the non-root user `dev`, and the docker socket access needs the root start of the container.
+DS-0002
