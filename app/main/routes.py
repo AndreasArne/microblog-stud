@@ -23,6 +23,15 @@ def before_request():
 
 
 
+@bp.route('/version')
+def version():
+    """
+    Route that shows which version of the app is running
+    """
+    return current_app.config["APP_VERSION"]
+
+
+
 @bp.route('/', methods=['GET', 'POST'])
 @bp.route('/index', methods=['GET', 'POST'])
 @login_required 
