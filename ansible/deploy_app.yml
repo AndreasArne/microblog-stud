@@ -1,0 +1,35 @@
+---
+# Rolling update: one app server at a time. The next server is only updated when the
+# new version answers on the current one, so there is always a server with a working version.
+# The version comes from the tag, run with -e app_version=<version>.
+# hosts defaults to the servers gather_instances finds. GitHub Actions runs it with -e app_hosts=prod_app.
+-   hosts: "{{ app_hosts | default('appserver') }}"
+    remote_user: "{{ server_user }}"
+    become: yes
+    become_method: sudo
+    serial: 1
+    roles:
+        -   setup_docker
+    tasks:
+        -   name: Start the Microblog container
+            community.docker.docker_container:
+                name: microblog
+                image: "{{ docker_username }}/microblog:{{ app_version }}"
+                pull: yes
+                state: started
+                recreate: yes
+                restart_policy: unless-stopped
+                ports:
+                    - "8000:5000"
+                env:
+                    SECRET_KEY: "{{ app_secret_key }}"
+                    DATABASE_URL: "mysql+pymysql://{{ db_user }}:{{ db_password }}@{{ domain_name }}/{{ db_name }}"
+
+        -   name: Wait until this server runs the new version
+            ansible.builtin.uri:
+                url: http://localhost:8000/version
+                return_content: yes
+            register: version_answer
+            until: version_answer.content | trim == app_version
+            retries: 30
+            delay: 2

@@ -1,0 +1,13 @@
+groups:
+  - name: microblog
+    rules:
+      # Fires when the app has answered with a 5xx status during the last minute.
+      # "increase()" is not used since it needs two samples and the counter
+      # for 5xx does not exist until the first error.
+      - alert: MicroblogServerErrors
+        expr: sum(flask_http_request_total{status=~"5.."}) - (sum(flask_http_request_total{status=~"5.."} offset 1m) or vector(0)) > 0
+        for: 0s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Microblog answered with a 5xx status"

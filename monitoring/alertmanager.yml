@@ -1,0 +1,12 @@
+route:
+  receiver: webhook
+  group_wait: 5s
+  group_interval: 30s
+  repeat_interval: 1h
+
+receivers:
+  - name: webhook
+    webhook_configs:
+      # Replace with your own unique URL from https://webhook.site
+      - url: "https://webhook.site/REPLACE-WITH-YOUR-OWN-ID"
+        send_resolved: true

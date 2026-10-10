@@ -105,6 +105,35 @@ validate-docker:
 
 
 
+# target: bandit                       - Static security analysis of the Python code with Bandit
+.PHONY: bandit
+bandit:
+	@bandit -q -r app
+
+
+
+# target: trivy-image                  - Scan the production image with Trivy (build it first, see the docker-compose file)
+.PHONY: trivy-image
+trivy-image:
+	@docker run --rm -v /var/run/docker.sock:/var/run/docker.sock ghcr.io/aquasecurity/trivy:0.75.0 image --scanners vuln,secret,misconfig --no-progress --severity HIGH,CRITICAL --exit-code 1 microblog:prod
+
+
+
+# target: trivy-fs                     - Scan the repo files with Trivy
+.PHONY: trivy-fs
+trivy-fs:
+	@docker run --rm -v "$(CURDIR)":/repo -w /repo ghcr.io/aquasecurity/trivy:0.75.0 fs --scanners vuln,secret,misconfig --severity HIGH,CRITICAL --exit-code 1 --no-progress --skip-dirs .venv,venv .
+
+
+
+# target: dockle                       - Lint the production image with Dockle (build it first)
+# DKL-DI-0004 is ignored, Dockle misreads the `apk add --no-cache --virtual` in the python base image.
+.PHONY: dockle
+dockle:
+	@docker run --rm -v /var/run/docker.sock:/var/run/docker.sock goodwithtech/dockle:v0.4.15 --exit-code 1 -i DKL-DI-0004 microblog:prod
+
+
+
 # target: validate-ci                  - Validate CircleCi config with CircleCi CLI
 .PHONY: validate-ci
 validate-ci:

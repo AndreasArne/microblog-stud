@@ -1,4 +1,9 @@
 ---
+# The IP addresses of the app servers and the load balancer, known after gather_instances has run.
+# Before that (when the VMs are created) everyone is allowed, security_groups.yml tightens the rules afterwards.
+app_sources: "{{ groups.get('appserver', []) | map('regex_replace', '$', '/32') | list or ['0.0.0.0/0'] }}"
+lb_sources: "{{ groups.get('loadbalancer', []) | map('regex_replace', '$', '/32') | list or ['0.0.0.0/0'] }}"
+
 sg_groups:
     -   name: loadbalancer
         port_rules:
@@ -29,7 +34,7 @@ sg_groups:
             access: Allow
             priority: 1004
             direction: Inbound
-            source_address_prefix: '0.0.0.0/0'
+            source_address_prefix: "{{ app_sources }}"
     -   name: appserver
         port_rules:
         -   name: SSH
@@ -45,4 +50,4 @@ sg_groups:
             access: Allow
             priority: 1002
             direction: Inbound
-            source_address_prefix: '0.0.0.0/0'
+            source_address_prefix: "{{ lb_sources }}"

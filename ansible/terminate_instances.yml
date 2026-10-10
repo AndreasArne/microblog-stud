@@ -6,12 +6,13 @@
     collections:
         - azure.azcollection
     roles:
-        - gather_instances
+        -   role: gather_instances
+            group_prefix: old_
 
 
 
 -   name: remove instance
-    hosts: devops
+    hosts: old_devops
     connection: local
     gather_facts: False
     collections:

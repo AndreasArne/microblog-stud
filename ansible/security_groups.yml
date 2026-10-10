@@ -1,0 +1,7 @@
+# Update the security groups with the IP addresses of the VMs, run gather_instances.yml first.
+---
+-   name: update security groups
+    hosts: local
+    gather_facts: False
+    roles:
+        - security_groups

@@ -1,0 +1,5 @@
+---
+# Added in front of the names of the groups gather_instances creates. add_host can not remove hosts,
+# so the VMs that terminate_instances finds would stay in the groups for the rest of the run
+# and, for example, end up in the nginx config. terminate_instances.yml uses a prefix to keep them apart.
+group_prefix: ""

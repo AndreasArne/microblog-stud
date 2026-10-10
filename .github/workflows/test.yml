@@ -1,0 +1,33 @@
+name: Test and validate
+
+on:
+  push:
+    branches: ["**"]
+  workflow_call:
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+
+      # Pulls from Docker Hub without a login share a rate limit with every other user of the runner's IP address.
+      - uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements/*.txt
+
+      - name: Install dependencies
+        run: make install-test
+
+      - name: Run tests and validate code
+        run: make test
+
+      - name: Validate Dockerfiles
+        run: make validate-docker

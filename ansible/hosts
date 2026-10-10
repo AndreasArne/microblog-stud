@@ -1,2 +1,8 @@
 [local]
 localhost ansible_connection=local
+
+# The servers by their domain names. Used by GitHub Actions, which does not run gather_instances.
+# The group names must not be the same as the ones gather_instances creates (appserver, loadbalancer, database).
+[prod_app]
+appserver1.devops.arnesson.dev
+appserver2.devops.arnesson.dev

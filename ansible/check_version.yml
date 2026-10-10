@@ -1,0 +1,16 @@
+---
+# Run after deploy_app.yml and deploy_lb.yml, with -e app_version=<version>.
+-   name: Check the new version through the load balancer
+    hosts: localhost
+    connection: local
+    gather_facts: no
+    tasks:
+        -   name: Ask the site for the version until every request returns the new one
+            ansible.builtin.uri:
+                url: "https://{{ domain_name }}/version"
+                return_content: yes
+                validate_certs: "{{ not certbot_staging | bool }}" # a staging certificate is not trusted
+            register: site_version
+            until: site_version.content | trim == app_version
+            retries: 15
+            delay: 2

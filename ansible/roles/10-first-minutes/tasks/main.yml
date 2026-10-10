@@ -36,12 +36,13 @@
         shell: /bin/bash
         groups: "{{ server_user_groups }}"
 
--   name: Add ssh-key for new user
+-   name: Add the ssh keys of all group members to the new user
+    # Every public key in the folder ssh_keys is added.
     authorized_key:
         user: "{{ server_user }}"
         state: present
         key: "{{ lookup('file', item) }}"
-    with_items: "{{ pub_ssh_key_location }}"
+    with_fileglob: "{{ playbook_dir }}/ssh_keys/*.pub"
 
 
 -   name: Add user to sudoers
@@ -52,18 +53,14 @@
         state: present
         validate: '/usr/sbin/visudo -cf %s' # kan få fel med line "{{ server_user }} testing"
 
--   name: Disallow root and password ssh access
-    lineinfile:
-        path: /etc/ssh/sshd_config
-        regexp: "{{ item.regexp }}"
-        line: "{{ item.line }}"
-        state: present
-        validate: '/usr/sbin/sshd -T -f %s' # kan få fel med line "PermitRootLogin testing"
-    with_items:
-        - regexp: "^PasswordAuthentication"
-          line: "PasswordAuthentication no"
-        - regexp: "^PermitRootLogin"
-          line: "PermitRootLogin no"
+-   name: Use the recommended ssh configuration, no root and no password login
+    template:
+        src: sshd_config.j2
+        dest: /etc/ssh/sshd_config
+        owner: root
+        group: root
+        mode: "644"
+        validate: '/usr/sbin/sshd -t -f %s'
     notify: restart ssh
 
 -   name: flush handlers to restart SSH

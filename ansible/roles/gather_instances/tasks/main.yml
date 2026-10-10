@@ -17,9 +17,9 @@
     add_host:
         name: "{{ item.tags.PublicIP }}"
         groups:
-        - "{{ item.name[0:-3] }}" # instance name from provision_instances/vars/main.yml
-        - "{{ item.tags.Type }}" # instance type from provision_instances/vars/main.yml
-        - devops
+        - "{{ group_prefix }}{{ item.name[0:-3] }}" # instance name from provision_instances/vars/main.yml
+        - "{{ group_prefix }}{{ item.tags.Type }}" # instance type from provision_instances/vars/main.yml
+        - "{{ group_prefix }}devops"
         # the keys below are dynamic and can have any name and value. A way to add data to the host which can be read later
         iname: "{{ item.name[0:-3] }}"
         itype: "{{ item.tags.Type }}"
@@ -33,7 +33,7 @@
     add_host:
         name: "{{ item.tags.PublicIP }}"
         groups:
-        - database
+        - "{{ group_prefix }}database"
     with_items: "{{ az_facts.vms }}"
     when: item.tags.PublicIP is defined and item.power_state == "running" and item.tags.Type == "loadbalancer"
 

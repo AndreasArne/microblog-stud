@@ -9,19 +9,38 @@
         path: /etc/letsencrypt/live/{{ domain_name }}/cert.pem
     register: letsencrypt_cert
 
--   name: debug msg to show if cert exist
-    debug: msg="{{ letsencrypt_cert.stat.exists }}"
+-   name: Check who issued the certificate
+    command: openssl x509 -in /etc/letsencrypt/live/{{ domain_name }}/cert.pem -noout -issuer
+    register: cert_issuer
+    changed_when: false
+    check_mode: false # It only reads, so it also runs with --check
+    when: letsencrypt_cert.stat.exists
+
+-   name: Decide if we need a new certificate
+    # Let's Encrypt only allows 5 certificates a week for the same domain. A staging certificate is not trusted
+    # by browsers but has no such limit, use certbot_staging: true while you build and false when it works.
+    # A staging certificate is replaced when certbot_staging is false. A real certificate is always kept.
+    set_fact:
+        need_cert: "{{ not letsencrypt_cert.stat.exists or (not certbot_staging | bool and '(STAGING)' in cert_issuer.stdout) }}"
+
+-   name: debug msg to show if we need a new cert
+    debug: msg="exists {{ letsencrypt_cert.stat.exists }}, certbot_staging {{ certbot_staging }}, new certificate {{ need_cert }}"
 
 -   name: Stop services to allow certbot to generate a cert.
     service:
       name: nginx
       state: stopped
-    when: not letsencrypt_cert.stat.exists
+    when: need_cert
 
--   name: Generate new certificate if one doesn't exist.
-    when: not letsencrypt_cert.stat.exists
+-   name: Remove the staging certificate that is replaced
     command:
-      cmd: "certbot certonly --standalone --noninteractive --expand --agree-tos --email {{ admin_email }} -d {{ domain_name }} -d www.{{ domain_name }}"
+      cmd: "certbot delete --noninteractive --cert-name {{ domain_name }}"
+    when: need_cert and letsencrypt_cert.stat.exists
+
+-   name: Generate new certificate.
+    when: need_cert
+    command:
+      cmd: "certbot certonly --standalone --noninteractive --expand --agree-tos --email {{ admin_email }} -d {{ domain_name }} -d www.{{ domain_name }} {{ '--staging' if certbot_staging | bool else '' }}"
 
 -   name: Remove default conf
     file:
@@ -56,4 +75,4 @@
     service:
       name: nginx
       state: started
-    when: not letsencrypt_cert.stat.exists
+    when: need_cert
