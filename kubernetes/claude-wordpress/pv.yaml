@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: wp-mysql-pv-volume
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data-wp/mysql"
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: wp-wordpress-pv-volume
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 20Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/mnt/data-wp/wordpress"

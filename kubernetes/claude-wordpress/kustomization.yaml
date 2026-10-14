@@ -1,0 +1,9 @@
+namespace: wordpress
+secretGenerator:
+- name: mysql-pass
+  literals:
+  - password=tutorial-test-pw
+resources:
+  - pv.yaml
+  - mysql-deployment.yaml
+  - wordpress-deployment.yaml
