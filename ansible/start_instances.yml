@@ -20,7 +20,7 @@
                 vm_size: "{{ item.vm_size }}"
                 allocated: true
                 started: true
-            loop: "{{ az_facts.vms }}"
+            loop: "{{ az_facts.vms | selectattr('name', 'match', '^' ~ resource_prefix ~ '-') | list }}"
             loop_control:
                 label: "{{ item.name }}"
             async: 600

@@ -1,0 +1,71 @@
+---
+- name: Roll out Microblog one server at a time
+  hosts: appserver
+  serial: 1
+  remote_user: deploy
+  become: true
+  tasks:
+    - name: Drain this server from the load balancer
+      ansible.builtin.template:
+        src: roles/deploy_lb/templates/load-balancer.conf.j2
+        dest: /etc/nginx/sites-available/load-balancer.conf
+        mode: '0644'
+      vars:
+        active_appservers: "{{ groups['appserver'] | difference([inventory_hostname]) }}"
+      delegate_to: "{{ groups['loadbalancer'][0] }}"
+      notify: Reload Nginx
+
+    - name: Apply drain before stopping this server
+      ansible.builtin.meta: flush_handlers
+
+    - name: Pull and restart Microblog
+      community.docker.docker_container:
+        name: microblog
+        image: "{{ docker_image }}:{{ app_version }}"
+        pull: missing
+        state: started
+        restart_policy: unless-stopped
+        published_ports:
+          - "8000:5000"
+        env:
+          DATABASE_URL: "mysql+pymysql://microblog:{{ db_password }}@{{ domain_name }}/microblog"
+          SECRET_KEY: "{{ secret_key }}"
+      no_log: true
+
+    - name: Verify new version directly before restoring traffic
+      ansible.builtin.uri:
+        url: http://127.0.0.1:8000/version
+        return_content: true
+      register: version_response
+      until: version_response.status == 200 and version_response.content == app_version
+      retries: 30
+      delay: 5
+
+    - name: Restore this server to the load balancer
+      ansible.builtin.template:
+        src: roles/deploy_lb/templates/load-balancer.conf.j2
+        dest: /etc/nginx/sites-available/load-balancer.conf
+        mode: '0644'
+      delegate_to: "{{ groups['loadbalancer'][0] }}"
+      notify: Reload Nginx
+
+    - name: Apply restored upstream
+      ansible.builtin.meta: flush_handlers
+
+  handlers:
+    - name: Reload Nginx
+      ansible.builtin.service:
+        name: nginx
+        state: reloaded
+      delegate_to: "{{ groups['loadbalancer'][0] }}"
+
+- name: Verify final production version on every app server
+  hosts: appserver
+  remote_user: deploy
+  tasks:
+    - name: Compare running version with the release tag
+      ansible.builtin.uri:
+        url: http://127.0.0.1:8000/version
+        return_content: true
+      register: final_version
+      failed_when: final_version.status != 200 or final_version.content != app_version

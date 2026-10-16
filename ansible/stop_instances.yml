@@ -19,7 +19,7 @@
                 resource_group: "{{ resource_group }}"
                 name: "{{ item.name }}"
                 allocated: false
-            loop: "{{ az_facts.vms }}"
+            loop: "{{ az_facts.vms | selectattr('name', 'match', '^' ~ resource_prefix ~ '-') | list }}"
             loop_control:
                 label: "{{ item.name }}"
             async: 600
