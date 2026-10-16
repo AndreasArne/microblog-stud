@@ -1,0 +1,14 @@
+# syntax=docker/dockerfile:1.4
+FROM python:3.11.13-alpine
+
+# make follows the Alpine release in the pinned Python base image.
+# hadolint ignore=DL3018
+RUN apk add --no-cache make
+WORKDIR /home/microblog
+COPY requirements requirements
+COPY requirements.txt Makefile pytest.ini .pylintrc .coveragerc test.sh ./
+RUN python -m venv .venv && \
+    .venv/bin/pip install --no-cache-dir -r requirements/test.txt && \
+    chmod +x test.sh
+ENV PATH="/home/microblog/.venv/bin:${PATH}"
+ENTRYPOINT ["./test.sh"]

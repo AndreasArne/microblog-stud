@@ -10,6 +10,11 @@ from app.models import User, Post
 from app.main import bp
 
 
+@bp.route('/version')
+def version():
+    """Return the version included in this build."""
+    return current_app.config['APP_VERSION'], 200, {'Content-Type': 'text/plain; charset=utf-8'}
+
 
 @bp.before_request
 def before_request():
