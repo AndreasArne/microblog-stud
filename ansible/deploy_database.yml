@@ -1,0 +1,52 @@
+---
+- name: Deploy database
+  hosts: database
+  remote_user: deploy
+  become: true
+  tasks:
+    - name: Install Docker and Python bindings
+      ansible.builtin.apt:
+        name:
+          - docker.io
+          - python3-docker
+        state: present
+        update_cache: true
+
+    - name: Start MySQL with persistent data
+      community.docker.docker_container:
+        name: microblog-mysql
+        image: mysql:8.4
+        command:
+          - --skip-log-bin
+          - --performance-schema=OFF
+          - --innodb-buffer-pool-size=64M
+          - --max-connections=20
+        state: started
+        restart_policy: unless-stopped
+        published_ports:
+          - "3306:3306"
+        volumes:
+          - devops_test_mysql_data:/var/lib/mysql
+        env:
+          MYSQL_ROOT_PASSWORD: "{{ mysql_root_password }}"
+          MYSQL_DATABASE: microblog
+          MYSQL_USER: microblog
+          MYSQL_PASSWORD: "{{ db_password }}"
+      no_log: true
+
+    - name: Wait for MySQL port
+      ansible.builtin.wait_for:
+        host: 127.0.0.1
+        port: 3306
+        timeout: 120
+
+    - name: Wait until the application user can log in
+      ansible.builtin.shell: >-
+        docker exec microblog-mysql sh -c
+        'MYSQL_PWD="$MYSQL_PASSWORD" mysql -u microblog microblog -e "SELECT 1"'
+      register: mysql_login
+      until: mysql_login.rc == 0
+      retries: 60
+      delay: 10
+      changed_when: false
+      no_log: true

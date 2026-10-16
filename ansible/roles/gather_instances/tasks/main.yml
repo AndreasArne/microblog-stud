@@ -7,12 +7,6 @@
 
 
 
--   name: Display all variables/facts known for a host
-    debug:
-        var: az_facts
-
-
-
 -   name: add instance to hosts
     add_host:
         name: "{{ item.tags.PublicIP }}"
@@ -24,7 +18,7 @@
         iname: "{{ item.name[0:-3] }}"
         itype: "{{ item.tags.Type }}"
     with_items: "{{ az_facts.vms }}"
-    when: item.tags.PublicIP is defined and item.power_state == "running"
+    when: item.name.startswith(resource_prefix ~ '-') and item.tags.PublicIP is defined and item.power_state == "running"
 
 
 
@@ -35,10 +29,4 @@
         groups:
         - "{{ group_prefix }}database"
     with_items: "{{ az_facts.vms }}"
-    when: item.tags.PublicIP is defined and item.power_state == "running" and item.tags.Type == "loadbalancer"
-
-
-
--   name: Display all variables/facts known for a host
-    debug:
-        var: hostvars
+    when: item.name.startswith(resource_prefix ~ '-') and item.tags.PublicIP is defined and item.power_state == "running" and item.tags.Type == "loadbalancer"

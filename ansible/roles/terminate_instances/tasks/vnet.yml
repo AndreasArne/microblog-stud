@@ -2,13 +2,13 @@
 -   name: Remove subnet
     azure_rm_subnet:
         resource_group: "{{ resource_group }}"
-        virtual_network: "microblog-Vnet"
-        name: "microblog-Subnet"
+        virtual_network: "{{ resource_prefix }}-Vnet"
+        name: "{{ resource_prefix }}-Subnet"
         state: absent
 
 
 -   name: Remove virtual network
     azure_rm_virtualnetwork:
         resource_group: "{{ resource_group }}"
-        name: "microblog-Vnet"
+        name: "{{ resource_prefix }}-Vnet"
         state: absent

@@ -3,23 +3,24 @@
 ansible_python_interpreter: "python3"
 
 region: northeurope
-resource_group: <your resource group> # Change me
-domain_name: <your domain> # Change me
+resource_group: DIDA-AARSTUD-DV1673-H25-LP2
+resource_prefix: devops-test-20261016
+domain_name: devops.arnesson.dev
+docker_image: andreasarne/microblog
 
-admin_email: <an email>
+admin_email: devops@arnesson.dev
 
 vmtags:
-    StudentId: <acronym> # Change me
+    StudentId: AARSTUD-DEVOPS-TEST-20261016
 
 
-pub_ssh_key_location: '<path to you local ssh public key>' # Change me, your local ssh key!
+pub_ssh_key_location: "{{ playbook_dir }}/public_keys/tester.pub"
 
 
 # The user Azure creates on the VMs. 10-first-minutes removes it.
 root_user: azureuser
 
 server_user: "deploy"
-server_user_pass: "<a password>" # change me
 server_user_groups:
     -   sudo
 

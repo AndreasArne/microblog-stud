@@ -1,0 +1,36 @@
+---
+- name: Deploy Microblog
+  hosts: appserver
+  remote_user: deploy
+  become: true
+  tasks:
+    - name: Install Docker and Python bindings
+      ansible.builtin.apt:
+        name:
+          - docker.io
+          - python3-docker
+        state: present
+        update_cache: true
+
+    - name: Start Microblog
+      community.docker.docker_container:
+        name: microblog
+        image: "{{ docker_image }}:{{ app_version }}"
+        pull: missing
+        state: started
+        restart_policy: unless-stopped
+        published_ports:
+          - "8000:5000"
+        env:
+          DATABASE_URL: "mysql+pymysql://microblog:{{ db_password }}@{{ domain_name }}/microblog"
+          SECRET_KEY: "{{ secret_key }}"
+      no_log: true
+
+    - name: Verify Microblog version
+      ansible.builtin.uri:
+        url: http://127.0.0.1:8000/version
+        return_content: true
+      register: version_response
+      until: version_response.status == 200 and version_response.content == app_version
+      retries: 30
+      delay: 5

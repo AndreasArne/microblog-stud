@@ -1,9 +1,4 @@
 ---
--   name: Set root password
-    user:
-        name: root
-        password: "{{ root_password }}"
-
 -   name: Update apt-cache and upgrade
     apt:
         force_apt_get: yes
@@ -31,7 +26,7 @@
 -   name: Create user
     user:
         name: "{{ server_user }}"
-        password: "{{ server_user_pass }}"
+        password_lock: true
         state: present
         shell: /bin/bash
         groups: "{{ server_user_groups }}"
@@ -41,7 +36,7 @@
         user: "{{ server_user }}"
         state: present
         key: "{{ lookup('file', item) }}"
-    with_items: "{{ pub_ssh_key_location }}"
+    loop: "{{ query('fileglob', playbook_dir ~ '/public_keys/*.pub') }}"
 
 
 -   name: Add user to sudoers

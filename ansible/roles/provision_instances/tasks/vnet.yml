@@ -2,7 +2,7 @@
 -   name: Create virtual network
     azure_rm_virtualnetwork:
         resource_group: "{{ resource_group }}"
-        name: "microblog-Vnet"
+        name: "{{ resource_prefix }}-Vnet"
         address_prefixes: "10.0.0.0/16"
         tags: "{{ vmtags }}"
 
@@ -11,6 +11,6 @@
 -   name: Add subnet
     azure_rm_subnet:
         resource_group: "{{ resource_group }}"
-        name: "microblog-Subnet"
+        name: "{{ resource_prefix }}-Subnet"
         address_prefix: "10.0.1.0/24"
-        virtual_network: "microblog-Vnet"
+        virtual_network: "{{ resource_prefix }}-Vnet"
