@@ -1,0 +1,24 @@
+# syntax=docker/dockerfile:1.4
+FROM python:3.11-alpine
+
+RUN adduser -D -u 1000 microblog
+
+WORKDIR /home/microblog
+
+COPY requirements requirements
+COPY Makefile pytest.ini .pylintrc .coveragerc microblog.py test.sh ./
+
+# hadolint ignore=DL3013,DL3018
+RUN <<EOF
+apk add --no-cache make
+python -m venv .venv
+. .venv/bin/activate
+pip install --no-cache-dir --upgrade pip
+pip install --no-cache-dir -r requirements/test.txt
+chmod +x test.sh
+chown -R microblog:microblog /home/microblog
+EOF
+
+USER 1000
+
+ENTRYPOINT ["./test.sh"]

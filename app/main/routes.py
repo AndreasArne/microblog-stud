@@ -55,6 +55,17 @@ def explore():
     return render_template('index.html', title='Explore', posts=posts)
 
 
+@bp.route('/version')
+def version():
+    """
+    Route for application version
+    """
+    return current_app.response_class(
+        current_app.config.get('APP_VERSION', 'unknown'),
+        mimetype='text/plain',
+    )
+
+
 
 @bp.route('/user/<username>')
 @login_required

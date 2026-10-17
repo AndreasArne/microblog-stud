@@ -31,7 +31,7 @@ class RegistrationForm(FlaskForm):
         'Repeat Password', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Register')
 
-    def validate_username(self, username):
+    def validate_username(self, username): # pylint: disable=no-self-use
         """
         Check if username already exist
         """
@@ -40,7 +40,7 @@ class RegistrationForm(FlaskForm):
             current_app.logger.debug(f"Username already exist. {user}")
             raise ValidationError('Please use a different username.')
 
-    def validate_email(self, email):
+    def validate_email(self, email): # pylint: disable=no-self-use
         """
         Check if email already exist
         """

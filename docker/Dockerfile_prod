@@ -1,0 +1,31 @@
+# syntax=docker/dockerfile:1.4
+FROM python:3.11-alpine
+
+RUN adduser -D -u 1000 microblog
+
+WORKDIR /home/microblog
+
+COPY app app
+COPY migrations migrations
+COPY requirements requirements
+COPY requirements.txt microblog.py boot.sh ./
+
+ARG APP_VERSION=unknown
+ENV FLASK_APP=microblog.py \
+    APP_VERSION=${APP_VERSION}
+
+# hadolint ignore=DL3013
+RUN <<EOF
+python -m venv .venv
+. .venv/bin/activate
+pip install --no-cache-dir --upgrade pip
+pip install --no-cache-dir -r requirements.txt
+chmod +x boot.sh
+chown -R microblog:microblog /home/microblog
+EOF
+
+USER 1000
+
+EXPOSE 5000
+
+ENTRYPOINT ["./boot.sh"]
