@@ -1,0 +1,33 @@
+# syntax=docker/dockerfile:1.4
+FROM python:3.11.17-slim-bookworm
+
+ARG APP_VERSION=unknown
+
+ENV APP_VERSION=${APP_VERSION} \
+    FLASK_APP=microblog.py \
+    PATH="/opt/venv/bin:$PATH" \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+RUN python -m venv /opt/venv
+
+COPY requirements/prod.txt requirements/prod.txt
+
+RUN pip install --no-cache-dir -r requirements/prod.txt
+
+COPY app app
+COPY migrations migrations
+COPY microblog.py microblog.py
+COPY boot.sh boot.sh
+
+RUN chmod +x boot.sh \
+    && useradd --create-home --uid 1000 appuser \
+    && chown -R appuser:appuser /app
+
+USER 1000
+
+EXPOSE 5000
+
+ENTRYPOINT ["./boot.sh"]

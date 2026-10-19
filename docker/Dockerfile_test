@@ -1,0 +1,34 @@
+# syntax=docker/dockerfile:1.4
+FROM python:3.11.17-slim-bookworm
+
+ENV FLASK_APP=microblog.py \
+    PATH="/opt/venv/bin:$PATH" \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends make=4.3-4.1 \
+    && rm -rf /var/lib/apt/lists/* \
+    && python -m venv /opt/venv
+
+COPY requirements/prod.txt requirements/prod.txt
+COPY requirements/test.txt requirements/test.txt
+
+RUN pip install --no-cache-dir -r requirements/test.txt
+
+COPY .coveragerc .coveragerc
+COPY .pylintrc .pylintrc
+COPY Makefile Makefile
+COPY pytest.ini pytest.ini
+COPY microblog.py microblog.py
+COPY boot-test.sh boot-test.sh
+
+RUN chmod +x boot-test.sh \
+    && useradd --create-home --uid 1000 appuser \
+    && chown -R appuser:appuser /app
+
+USER 1000
+
+ENTRYPOINT ["./boot-test.sh"]

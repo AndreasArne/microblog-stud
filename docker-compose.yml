@@ -1,0 +1,36 @@
+services:
+  db:
+    image: mysql:8.0.42
+    environment:
+      MYSQL_DATABASE: microblog
+      MYSQL_PASSWORD: microblog
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_USER: microblog
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u$$MYSQL_USER -p$$MYSQL_PASSWORD || exit 1"]
+      timeout: 5s
+      interval: 10s
+      retries: 10
+
+  prod:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile_prod
+      args:
+        APP_VERSION: ${APP_VERSION:-11.0.0-local}
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: mysql+pymysql://microblog:microblog@db/microblog
+      SECRET_KEY: microblog-secret-key
+    ports:
+      - "8000:5000"
+
+  test:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile_test
+    volumes:
+      - ./app:/app/app
+      - ./tests:/app/tests
