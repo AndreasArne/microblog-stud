@@ -30,6 +30,14 @@ def version():
     return current_app.config.get('APP_VERSION', 'unknown')
 
 
+@bp.route('/boom')
+def boom():
+    """
+    Route for intentionally triggering a 500 error for monitoring.
+    """
+    raise RuntimeError('Synthetic kmom04 error')
+
+
 
 @bp.route('/', methods=['GET', 'POST'])
 @bp.route('/index', methods=['GET', 'POST'])

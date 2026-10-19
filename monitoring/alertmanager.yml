@@ -8,5 +8,5 @@ receivers:
   - name: webhook
     webhook_configs:
       # Replace with your own unique URL from https://webhook.site
-      - url: "https://webhook.site/REPLACE-WITH-YOUR-OWN-ID"
+      - url: "https://webhook.site/38d658b6-e5b0-4ce2-987e-f6a957d2103b"
         send_resolved: true

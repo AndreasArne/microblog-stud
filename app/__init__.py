@@ -12,6 +12,8 @@ from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_moment import Moment
 from flask_bootstrap import Bootstrap
+from prometheus_client import CollectorRegistry
+from prometheus_flask_exporter import PrometheusMetrics
 from app.config import ProdConfig, RequestFormatter
 
 
@@ -32,6 +34,16 @@ def create_app(config_class=ProdConfig):
     """
     app = Flask(__name__)
     app.config.from_object(config_class)
+
+    metrics = PrometheusMetrics.for_app_factory(
+        registry=CollectorRegistry(auto_describe=True)
+    )
+    metrics.init_app(app)
+    metrics.info(
+        'app_info',
+        'Application info',
+        version=app.config.get('APP_VERSION', 'unknown'),
+    )
 
     db.init_app(app)
     migrate.init_app(app, db)
