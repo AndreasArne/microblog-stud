@@ -36,6 +36,9 @@ OS = $(shell uname -s)
 
 # Defaults
 ECHO = echo
+PROD_IMAGE = microblog:prod
+TRIVY_VERSION = 0.75.0
+DOCKLE_VERSION = v0.4.15
 
 # Make adjustments based on OS
 ifneq (, $(findstring CYGWIN, $(OS)))
@@ -102,6 +105,47 @@ validate:
 validate-docker:
 	@docker run --rm -i hadolint/hadolint:v2.15.1 < docker/Dockerfile_prod
 	@docker run --rm -i hadolint/hadolint:v2.15.1 < docker/Dockerfile_test
+
+
+
+# target: build-prod-image             - Build the production image for security scans
+.PHONY: build-prod-image
+build-prod-image:
+	@docker compose build prod
+
+
+
+# target: bandit                       - Run Bandit against the app package
+.PHONY: bandit
+bandit:
+	@bandit -r app -q
+
+
+
+# target: trivy-image                  - Run Trivy against the production image
+.PHONY: trivy-image
+trivy-image:
+	@docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy:$(TRIVY_VERSION) image --scanners vuln,secret,misconfig --no-progress --skip-version-check --severity HIGH,CRITICAL --exit-code 1 $(PROD_IMAGE)
+
+
+
+# target: trivy-fs                     - Run Trivy against the repository filesystem
+.PHONY: trivy-fs
+trivy-fs:
+	@docker run --rm -v "$(CURDIR)":/repo -w /repo aquasec/trivy:$(TRIVY_VERSION) fs --scanners vuln,secret,misconfig --severity HIGH,CRITICAL --exit-code 1 --no-progress --skip-version-check --skip-dirs .venv,venv .
+
+
+
+# target: dockle                       - Run Dockle against the production image
+.PHONY: dockle
+dockle:
+	@docker run --rm -v /var/run/docker.sock:/var/run/docker.sock goodwithtech/dockle:$(DOCKLE_VERSION) --exit-code 1 --ignore DKL-DI-0004 $(PROD_IMAGE)
+
+
+
+# target: security                     - Run Bandit, Trivy and Dockle
+.PHONY: security
+security: bandit build-prod-image trivy-image trivy-fs dockle
 
 
 

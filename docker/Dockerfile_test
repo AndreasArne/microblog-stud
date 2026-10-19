@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.4
-FROM python:3.11.17-slim-bookworm
+FROM python:3.12.15-alpine3.24
 
 ENV FLASK_APP=microblog.py \
     PATH="/opt/venv/bin:$PATH" \
@@ -8,9 +8,7 @@ ENV FLASK_APP=microblog.py \
 
 WORKDIR /app
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends make=4.3-4.1 \
-    && rm -rf /var/lib/apt/lists/* \
+RUN apk add --no-cache build-base make mariadb-connector-c-dev \
     && python -m venv /opt/venv
 
 COPY requirements/prod.txt requirements/prod.txt
@@ -26,7 +24,7 @@ COPY microblog.py microblog.py
 COPY boot-test.sh boot-test.sh
 
 RUN chmod +x boot-test.sh \
-    && useradd --create-home --uid 1000 appuser \
+    && adduser -D -u 1000 appuser \
     && chown -R appuser:appuser /app
 
 USER 1000

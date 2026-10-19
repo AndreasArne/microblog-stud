@@ -13,6 +13,7 @@ services:
       retries: 10
 
   prod:
+    image: microblog:prod
     build:
       context: .
       dockerfile: docker/Dockerfile_prod
@@ -28,6 +29,7 @@ services:
       - "8000:5000"
 
   test:
+    image: microblog:test
     build:
       context: .
       dockerfile: docker/Dockerfile_test

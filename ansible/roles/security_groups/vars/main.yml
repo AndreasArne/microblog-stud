@@ -34,7 +34,14 @@ sg_groups:
             access: Allow
             priority: 1004
             direction: Inbound
-            source_address_prefix: '0.0.0.0/0'
+            source_address_prefix: "{{ app_sources[0] }}"
+        -   name: MYSQL-SECONDARY # Only the second app server may also reach MySQL
+            protocol: Tcp
+            destination_port_range: 3306
+            access: Allow
+            priority: 1005
+            direction: Inbound
+            source_address_prefix: "{{ app_sources[1] if app_sources | length > 1 else app_sources[0] }}"
     -   name: appserver
         port_rules:
         -   name: SSH
@@ -50,4 +57,4 @@ sg_groups:
             access: Allow
             priority: 1002
             direction: Inbound
-            source_address_prefix: '0.0.0.0/0'
+            source_address_prefix: "{{ lb_sources[0] }}"

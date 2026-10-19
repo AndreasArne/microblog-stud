@@ -28,13 +28,12 @@ class User(UserMixin, db.Model):
         """
         Set password to generated password hash
         """
-        self.password_hash = generate_password_hash(password)
+        self.password_hash = generate_password_hash(password, method="pbkdf2:sha256")
 
     def check_password(self, password):
         """
         Check if password hash matches set password
         """
-        current_app.logger.debug(f"Checking password {password}")
         return check_password_hash(self.password_hash, password)
 
     @staticmethod
@@ -49,7 +48,7 @@ class User(UserMixin, db.Model):
         """
         Return Gravatar URL based on email
         """
-        digest = md5(self.email.lower().encode('utf-8')).hexdigest()
+        digest = md5(self.email.lower().encode('utf-8'), usedforsecurity=False).hexdigest()
         url = f'https://www.gravatar.com/avatar/{digest}?d=retro&s={size}'
         current_app.logger.debug(f"Get gravatar {url}")
         return url

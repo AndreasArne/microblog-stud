@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.4
-FROM python:3.11.17-slim-bookworm
+FROM python:3.12.15-alpine3.24
 
 ARG APP_VERSION=unknown
 
@@ -15,7 +15,9 @@ RUN python -m venv /opt/venv
 
 COPY requirements/prod.txt requirements/prod.txt
 
-RUN pip install --no-cache-dir -r requirements/prod.txt
+RUN apk add --no-cache build-base mariadb-connector-c-dev \
+    && pip install --no-cache-dir -r requirements/prod.txt \
+    && apk del build-base
 
 COPY app app
 COPY migrations migrations
@@ -23,8 +25,11 @@ COPY microblog.py microblog.py
 COPY boot.sh boot.sh
 
 RUN chmod +x boot.sh \
-    && useradd --create-home --uid 1000 appuser \
+    && adduser -D -u 1000 appuser \
     && chown -R appuser:appuser /app
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:5000/version || exit 1
 
 USER 1000
 

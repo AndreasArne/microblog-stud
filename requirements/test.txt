@@ -1,4 +1,5 @@
 -r prod.txt
+bandit==1.7.10
 pylint==3.2.7
 pytest >= 6.1.2
 coverage~=4.5.4

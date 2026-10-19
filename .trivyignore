@@ -1,0 +1,3 @@
+# The dev container image starts as root to configure toolchains and Docker access,
+# then the workspace runs as the non-root `dev` user via `remoteUser` in devcontainer.json.
+DS-0002
