@@ -1,0 +1,32 @@
+---
+-   name: Install Docker
+    include_role:
+        name: install_docker
+
+-   name: Start the MySQL container
+    community.docker.docker_container:
+        name: microblog-db
+        image: "{{ mysql_image }}"
+        pull: yes
+        restart_policy: unless-stopped
+        published_ports:
+            - "3306:3306"
+        env:
+            MYSQL_DATABASE: "{{ db_name }}"
+            MYSQL_USER: "{{ db_user }}"
+            MYSQL_PASSWORD: "{{ db_password }}"
+            MYSQL_ROOT_PASSWORD: "{{ db_root_password }}"
+        volumes:
+            - microblog-mysql:/var/lib/mysql
+        command:
+            - --performance-schema=off
+            - --innodb-buffer-pool-size=64M
+            - --max-connections=50
+
+-   name: Wait for MySQL to accept connections
+    command: docker exec microblog-db mysqladmin ping -h 127.0.0.1 -u{{ db_user }} -p{{ db_password }}
+    register: mysql_ping
+    changed_when: false
+    retries: 24
+    delay: 5
+    until: mysql_ping.rc == 0

@@ -1,0 +1,33 @@
+---
+-   name: Install Docker
+    include_role:
+        name: install_docker
+
+-   name: Start the Microblog container
+    community.docker.docker_container:
+        name: microblog-app
+        image: "{{ app_image }}"
+        pull: yes
+        restart_policy: unless-stopped
+        published_ports:
+            - "8000:5000"
+        env:
+            DATABASE_URL: "mysql+pymysql://{{ db_user }}:{{ db_password }}@{{ domain_name }}/{{ db_name }}"
+            SECRET_KEY: "{{ app_secret_key }}"
+            APP_VERSION: "{{ app_version }}"
+
+-   name: Wait for the app port
+    wait_for:
+        host: 127.0.0.1
+        port: 8000
+        delay: 2
+        timeout: 120
+
+-   name: Verify the app version on the app server
+    uri:
+        url: http://127.0.0.1:8000/version
+        return_content: yes
+    register: app_version_response
+    retries: 24
+    delay: 5
+    until: app_version_response.content | trim == app_version

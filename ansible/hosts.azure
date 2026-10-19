@@ -1,0 +1,17 @@
+[local]
+localhost ansible_connection=local
+
+[devops]
+appserver1.devops.arnesson.dev
+appserver2.devops.arnesson.dev
+loadbalancer.devops.arnesson.dev
+
+[appserver]
+appserver1.devops.arnesson.dev
+appserver2.devops.arnesson.dev
+
+[loadbalancer]
+loadbalancer.devops.arnesson.dev
+
+[database]
+loadbalancer.devops.arnesson.dev

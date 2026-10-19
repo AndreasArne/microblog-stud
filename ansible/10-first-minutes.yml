@@ -4,5 +4,6 @@
     remote_user: azureuser
     become: yes
     become_method: sudo
+    gather_facts: yes
     roles:
         -   10-first-minutes

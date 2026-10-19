@@ -19,28 +19,38 @@
         virtual_network: "microblog-Vnet"
         subnet: "microblog-Subnet"
         ip_configurations:
-            - name: ipconfig1
-              public_ip_address_name: "{{ iname }}-ip"
+            -   name: ipconfig1
+                public_ip_address_name: "{{ iname }}-ip"
         security_group: "{{ itype }}-sg"
         tags: "{{ vmtags }}"
 
--   name: Ensure "A" records for loadbalancer
+-   name: Ensure an A record exists for each VM hostname
+    azure_rm_dnsrecordset:
+        resource_group: "{{ resource_group }}"
+        relative_name: "{{ iname }}"
+        zone_name: "{{ domain_name }}"
+        record_type: A
+        state: present
+        time_to_live: 60
+        records:
+            -   entry: "{{ output_ip_address.state.ip_address }}"
+    delegate_to: 127.0.0.1
+
+-   name: Ensure domain A records for the load balancer
     azure_rm_dnsrecordset:
         resource_group: "{{ resource_group }}"
         relative_name: "{{ relative_name.name }}"
         zone_name: "{{ domain_name }}"
         record_type: A
         state: present
-        time_to_live: 60 # A short time, a new VM gets a new IP address and old answers are cached for the time to live
+        time_to_live: 60
         records:
-            - entry: "{{ output_ip_address.state.ip_address }}"
+            -   entry: "{{ output_ip_address.state.ip_address }}"
     when: iname == 'loadbalancer'
     loop: "{{ relative_names }}"
-    loop_control: 
+    loop_control:
         loop_var: relative_name
     delegate_to: 127.0.0.1
-
-
 
 -   name: Create VM
     azure_rm_virtualmachine:
@@ -49,8 +59,8 @@
         admin_username: "{{ root_user }}"
         ssh_password_enabled: false
         ssh_public_keys:
-            - path: "/home/{{ root_user }}/.ssh/authorized_keys"
-              key_data: "{{ lookup('file', pub_ssh_key_location) }}"
+            -   path: "/home/{{ root_user }}/.ssh/authorized_keys"
+                key_data: "{{ lookup('file', pub_ssh_key_location) }}"
         vm_size: Standard_B1s
         network_interfaces: "{{ iname }}-NIC"
         managed_disk_type: Standard_LRS

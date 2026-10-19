@@ -3,17 +3,26 @@
 ansible_python_interpreter: "python3"
 
 region: northeurope
-resource_group: <your resource group> # Change me
-domain_name: <your domain> # Change me
+resource_group: DIDA-AARSTUD-DV1673-H25-LP2
+domain_name: devops.arnesson.dev
+admin_email: aar@bth.se
 
-admin_email: <an email>
+dockerhub_username: "{{ lookup('env', 'DOCKERHUB_USERNAME') | default('andreasarne', true) }}"
+app_version: "{{ lookup('env', 'APP_VERSION') | default('11.0.4', true) }}"
+app_image: "docker.io/{{ dockerhub_username }}/microblog:{{ app_version }}"
+
+db_name: microblog
+db_user: microblog
+db_password: "{{ lookup('env', 'DB_PASSWORD') | default('microblog-db-password', true) }}"
+db_root_password: "{{ lookup('env', 'DB_ROOT_PASSWORD') | default('microblog-root-password', true) }}"
+app_secret_key: "{{ lookup('env', 'APP_SECRET_KEY') | default('microblog-secret-key', true) }}"
+mysql_image: mysql:8.0.42
 
 vmtags:
-    StudentId: <acronym> # Change me
+    StudentId: AAR
 
-
-pub_ssh_key_location: '<path to you local ssh public key>' # Change me, your local ssh key!
-
+pub_ssh_key_location: '/home/dev/.ssh/azurestud.pub'
+pub_ssh_key_directory: '/home/dev/.ssh'
 
 # The user Azure creates on the VMs. 10-first-minutes removes it.
 root_user: azureuser

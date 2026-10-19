@@ -1,0 +1,16 @@
+---
+-   name: Install Docker packages
+    apt:
+        force_apt_get: yes
+        update_cache: yes
+        cache_valid_time: 3600
+        name:
+            - docker.io
+            - python3-docker
+        state: present
+
+-   name: Ensure Docker service is enabled and running
+    service:
+        name: docker
+        enabled: yes
+        state: started

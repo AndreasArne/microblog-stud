@@ -1,11 +1,13 @@
 ---
 # The database should be on its own VM, but to save costs we run it on the load balancer VM.
 instances:
-    - name: appserver
-      type: appserver
-    - name: loadbalancer
-      type: loadbalancer
+    -   name: appserver1
+        type: appserver
+    -   name: appserver2
+        type: appserver
+    -   name: loadbalancer
+        type: loadbalancer
 
 relative_names:
-    - name: www # www.<domain>
-    - name: "@" # so <domain> works as a URL. Otherwise only www.<domain> would work.
+    -   name: www # www.<domain>
+    -   name: "@" # so <domain> works as a URL. Otherwise only www.<domain> would work.

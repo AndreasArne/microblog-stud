@@ -12,8 +12,6 @@
         name: "{{ packages }}"
 
 -   name: Create a swap file
-    # The VMs have 1 GB RAM. The load balancer VM also runs Docker and MySQL, without swap it can run out of memory
-    # during the first start of MySQL and then stops answering on SSH.
     command: fallocate -l 1G /swapfile
     args:
         creates: /swapfile
@@ -55,13 +53,12 @@
         shell: /bin/bash
         groups: "{{ server_user_groups }}"
 
--   name: Add ssh-key for new user
+-   name: Add SSH keys for the deploy user
     authorized_key:
         user: "{{ server_user }}"
         state: present
         key: "{{ lookup('file', item) }}"
-    with_items: "{{ pub_ssh_key_location }}"
-
+    loop: "{{ lookup('fileglob', pub_ssh_key_directory ~ '/*.pub', wantlist=True) }}"
 
 -   name: Add user to sudoers
     lineinfile:
@@ -69,7 +66,7 @@
         regexp: "{{ server_user }} ALL"
         line: "{{ server_user }} ALL=(ALL) NOPASSWD:ALL"
         state: present
-        validate: '/usr/sbin/visudo -cf %s' # kan få fel med line "{{ server_user }} testing"
+        validate: '/usr/sbin/visudo -cf %s'
 
 -   name: Disallow root and password ssh access
     lineinfile:
@@ -77,24 +74,23 @@
         regexp: "{{ item.regexp }}"
         line: "{{ item.line }}"
         state: present
-        validate: '/usr/sbin/sshd -T -f %s' # kan få fel med line "PermitRootLogin testing"
-    with_items:
-        - regexp: "^PasswordAuthentication"
-          line: "PasswordAuthentication no"
-        - regexp: "^PermitRootLogin"
-          line: "PermitRootLogin no"
+        validate: '/usr/sbin/sshd -T -f %s'
+    loop:
+        -   regexp: "^PasswordAuthentication"
+            line: "PasswordAuthentication no"
+        -   regexp: "^PermitRootLogin"
+            line: "PermitRootLogin no"
     notify: restart ssh
 
--   name: flush handlers to restart SSH
-    meta: flush_handlers # we cant do it later because after this we cant ssh as root
+-   name: Flush handlers to restart SSH
+    meta: flush_handlers
 
--   name: Only allow user to ssh
+-   name: Only allow the deploy user to ssh
     lineinfile:
         path: /etc/ssh/sshd_config
         regexp: "^AllowUsers"
         line: "AllowUsers {{ server_user }}"
         state: present
-    # ignore_errors: yes
 
 -   name: Remove default user
     remote_user: "{{ server_user }}"
@@ -103,4 +99,3 @@
         state: absent
         force: yes
         remove: yes
-    # ignore_errors: yes

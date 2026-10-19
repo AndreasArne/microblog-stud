@@ -1,0 +1,48 @@
+---
+-   hosts: appserver
+    remote_user: "deploy"
+    become: yes
+    become_method: sudo
+    serial: 1
+    tasks:
+        -   name: Build the upstream list without the current app server
+            set_fact:
+                rolling_upstream_hosts: "{{ groups['appserver'] | difference([inventory_hostname]) | list }}"
+
+        -   name: Remove the current app server from the load balancer while it is updated
+            include_role:
+                name: deploy_lb
+                tasks_from: nginx
+                apply:
+                    delegate_to: "{{ groups['loadbalancer'][0] }}"
+            vars:
+                lb_upstream_hosts: "{{ rolling_upstream_hosts if rolling_upstream_hosts else groups['appserver'] }}"
+
+        -   name: Deploy the app container on the current app server
+            include_role:
+                name: deploy_app
+
+        -   name: Add the updated app server back to the load balancer
+            include_role:
+                name: deploy_lb
+                tasks_from: nginx
+                apply:
+                    delegate_to: "{{ groups['loadbalancer'][0] }}"
+            vars:
+                lb_upstream_hosts: "{{ groups['appserver'] }}"
+
+-   hosts: loadbalancer
+    remote_user: "deploy"
+    become: yes
+    become_method: sudo
+    tasks:
+        -   name: Verify the deployed version through the load balancer
+            uri:
+                url: "https://{{ domain_name }}/version"
+                validate_certs: false
+                return_content: yes
+            delegate_to: localhost
+            register: load_balancer_version
+            retries: 24
+            delay: 5
+            until: load_balancer_version.content | trim == app_version
