@@ -22,6 +22,14 @@ def before_request():
         db.session.commit()
 
 
+@bp.route('/version')
+def version():
+    """
+    Route for showing app version.
+    """
+    return current_app.config.get('APP_VERSION', 'unknown')
+
+
 
 @bp.route('/', methods=['GET', 'POST'])
 @bp.route('/index', methods=['GET', 'POST'])
